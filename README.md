@@ -1,1 +1,3 @@
-# binary_stochastic_synapses
+# Binary Stochastic Synapses
+
+Code for modelling binary stochastic synapse networks.

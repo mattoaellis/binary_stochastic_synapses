@@ -60,7 +60,6 @@ dev, [x_train, x_valid, x_test, y_train, y_valid, y_test] = select_device(use_gp
 
 bs = 64  # batch size
 
-
 train_ds = TensorDataset((x_train), y_train)
 train_dl = DataLoader(train_ds, batch_size=bs, shuffle=True)
 valid_ds = TensorDataset( (x_valid), y_valid)
@@ -71,35 +70,22 @@ test_dl = DataLoader( test_ds, batch_size = bs*2)
 
 inval = int(sys.argv[1])
 Nsy = 2**inval if inval >= 0 else inval
-Nhid= int(sys.argv[2])
-print(Nsy )
+print( f"Number of samples per synapse: {Nsy}" )
 
 
-#lr = 0.02  # learning rate
-lr = 0.02
+lr = 0.02 # learning rate
 epochs = 100
 Nmodels = 5
 
+# Parameters for the probabiltiy function of the synapse
 wire_mean = np.array([4.63168, 2.72741, 0.97813])
 
-for i in range(4):
+for i in range(Nmodels):
     model = get_model(Nin, Nsy, device=dev, mean_field=False, wire_mean=wire_mean)
     print(model)
 
-
-    #x0 = model.lin.x0.cpu().detach().numpy()
-    #dx = model.lin.dx.cpu().detach().numpy()
-    #a = model.lin.a.cpu().detach().numpy()
-    #np.savez('Wire_params_start'+str(i), x0=x0, dx=dx, a=a)
-
-    #model.load_state_dict(torch.load("checkpoint.pt"))
-    train_err, test_err = run_model(model, lr, epochs, train_dl, valid_dl, test_dl, dev, reinforce=False)
+    train_err, test_err = run_model(model, lr, epochs, train_dl, valid_dl, test_dl, dev)
     np.savetxt( str(Nsy)+'BSS_valid_err_'+str(i), train_err)
     np.savetxt( str(Nsy)+'BSS_test_err_'+str(i), test_err)
     print('Test: ', test_err.mean(axis=0))
     torch.save(model.state_dict(), str(Nsy)+'BSS_model_'+str(i)+'.pt')
-
-
-    weights = model.lin.weight.cpu().detach().numpy()
-    probs = model.lin.weight.cpu().detach().numpy()
-    np.savez(str(Nsy)+'BSS_model_'+str(i), weights=weights, probs=probs)
